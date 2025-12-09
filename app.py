@@ -632,7 +632,7 @@ def undo():
                 log_action('UNDO', data['name'], student_id, {'original_action': 'EDIT'})
         
         elif action_type == 'ADD':
-            # Delete the student that was added
+            # Delete the student that was added (undo of ADD means delete)
             student = Student.query.get(student_id)
             if student:
                 # NOTE: Don't delete picture file - keep it for undo/redo restore functionality
@@ -644,19 +644,37 @@ def undo():
                 
                 # Log undo action
                 log_action('UNDO', student.name, student_id, {'original_action': 'ADD'})
+                
+                # Push to redo stack so user can redo the add
+                redo_stack.append(undo_entry)
+            else:
+                flash(f"Undo failed: Student not found", "danger")
+                undo_stack.append(undo_entry)  # Push back if failed
         
         elif action_type == 'DELETE':
             # Restore the deleted student
-            new_student = Student(
-                id=student_id,
-                name=data['name'],
-                program=data['program'],
-                total_hours=data['total_hours'],
-                completed_hours=data['completed_hours'],
-                picture=data['picture']
-            )
-            db.session.add(new_student)
-            db.session.commit()
+            existing = Student.query.get(student_id)
+            if existing:
+                # Student already exists, just update it to be safe
+                existing.name = data['name']
+                existing.program = data['program']
+                existing.total_hours = data['total_hours']
+                existing.completed_hours = data['completed_hours']
+                existing.picture = data['picture']
+                db.session.commit()
+            else:
+                # Student doesn't exist, create new
+                new_student = Student(
+                    id=student_id,
+                    name=data['name'],
+                    program=data['program'],
+                    total_hours=data['total_hours'],
+                    completed_hours=data['completed_hours'],
+                    picture=data['picture']
+                )
+                db.session.add(new_student)
+                db.session.commit()
+            
             flash(f"Undo successful: Restored '{data['name']}'", "success")
             
             # Log undo action
@@ -720,17 +738,29 @@ def redo():
                 undo_stack.append(redo_entry)
         
         elif action_type == 'ADD':
-            # Re-add the student
-            new_student = Student(
-                id=student_id,
-                name=data['name'],
-                program=data['program'],
-                total_hours=data['total_hours'],
-                completed_hours=data['completed_hours'],
-                picture=data['picture']
-            )
-            db.session.add(new_student)
-            db.session.commit()
+            # Re-add the student (redo of delete-via-undo means add back)
+            existing = Student.query.get(student_id)
+            if existing:
+                # Student already exists, just update it
+                existing.name = data['name']
+                existing.program = data['program']
+                existing.total_hours = data['total_hours']
+                existing.completed_hours = data['completed_hours']
+                existing.picture = data['picture']
+                db.session.commit()
+            else:
+                # Student doesn't exist, create new
+                new_student = Student(
+                    id=student_id,
+                    name=data['name'],
+                    program=data['program'],
+                    total_hours=data['total_hours'],
+                    completed_hours=data['completed_hours'],
+                    picture=data['picture']
+                )
+                db.session.add(new_student)
+                db.session.commit()
+            
             flash(f"Redo successful: Added '{data['name']}'", "success")
             
             # Log redo action
