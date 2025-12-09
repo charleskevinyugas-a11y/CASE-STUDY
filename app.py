@@ -685,6 +685,9 @@ def redo():
                 db.session.delete(student)
                 db.session.commit()
                 flash(f"Redo successful: Deleted '{data['name']}'", "success")
+                
+                # Push back to undo stack so it can be undone again
+                undo_stack.append(redo_entry)
         
         elif action_type == 'EDIT':
             # Re-apply the edit
@@ -697,6 +700,9 @@ def redo():
                 student.picture = data['picture']
                 db.session.commit()
                 flash(f"Redo successful: Updated '{data['name']}'", "success")
+                
+                # Push back to undo stack so it can be undone again
+                undo_stack.append(redo_entry)
         
         elif action_type == 'ADD':
             # Re-add the student
