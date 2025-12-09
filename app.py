@@ -332,6 +332,16 @@ def add_student():
         db.session.add(new_student)
         db.session.commit()
 
+        # Save to undo stack (STACK implementation)
+        student_data = {
+            'name': name,
+            'program': program,
+            'total_hours': total_hours,
+            'completed_hours': completed_hours,
+            'picture': picture_filename
+        }
+        save_to_undo_stack(new_student.id, 'ADD', student_data)
+
         # Log action to queue
         log_action(
             'ADD',
