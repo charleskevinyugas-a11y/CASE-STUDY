@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Log</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">Community Service Tracking</span>
+            <a href="/admin" class="btn btn-outline-light">Back to Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1 class="mb-4">Activity Log (Queue Implementation)</h1>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, m in messages %}
+              {% if category == 'success' %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                  <h4 class="alert-heading">Success!</h4>
+                  <div>{{ m }}</div>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% elif category == 'danger' %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                  <h4 class="alert-heading">Error</h4>
+                  <div>{{ m }}</div>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% else %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                  <h4 class="alert-heading">Warning</h4>
+                  <div>{{ m }}</div>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- Undo/Redo Controls -->
+        <div class="card mb-4 bg-light border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Stack Operations (Undo/Redo)</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" class="d-flex gap-2">
+                    {% if undo_available %}
+                        <button type="submit" formaction="/undo" class="btn btn-warning">
+                            <i class="bi bi-arrow-counterclockwise"></i> Undo Last Change
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-warning" disabled>
+                            <i class="bi bi-arrow-counterclockwise"></i> Undo (None Available)
+                        </button>
+                    {% endif %}
+                    
+                    {% if redo_available %}
+                        <button type="submit" formaction="/redo" class="btn btn-info">
+                            <i class="bi bi-arrow-clockwise"></i> Redo Last Undo
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-info" disabled>
+                            <i class="bi bi-arrow-clockwise"></i> Redo (None Available)
+                        </button>
+                    {% endif %}
+                </form>
+                <small class="text-muted d-block mt-2">
+                    <strong>Stack Info:</strong> Actions are stored in LIFO (Last In First Out) order. 
+                    Undo reverses the most recent action; Redo restores the most recent undo.
+                </small>
+            </div>
+        </div>
+
+        <!-- Recent Actions Table -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Recent Actions (FIFO Queue Order)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Timestamp (PHT)</th>
+                                <th>Action Type</th>
+                                <th>Student Name</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if actions %}
+                                {% for action in actions %}
+                                <tr>
+                                    <td>
+                                        {{ action.timestamp.strftime('%Y-%m-%d %H:%M:%S') }} PHT
+                                    </td>
+                                    <td>
+                                        {% if action.action_type == 'ADD' %}
+                                            <span class="badge bg-success">ADD</span>
+                                        {% elif action.action_type == 'EDIT' %}
+                                            <span class="badge bg-warning text-dark">EDIT</span>
+                                        {% elif action.action_type == 'DELETE' %}
+                                            <span class="badge bg-danger">DELETE</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ action.student_name }}</td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {% if action.details %}
+                                                {{ action.details[:100] }}{% if action.details|length > 100 %}...{% endif %}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">No actions recorded yet.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if has_next or has_prev %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page - 1 }}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">Page {{ page }}</span>
+                        </li>
+                        
+                        {% if has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page + 1 }}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Data Structure Explanation -->
+        <div class="card mt-4 bg-light">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Data Structure Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Queue (Activity Log)</h6>
+                        <ul class="small">
+                            <li>Type: <strong>FIFO (First In First Out)</strong></li>
+                            <li>Max Size: <strong>100 actions</strong> (in-memory)</li>
+                            <li>Persistence: <strong>Database</strong> (unlimited)</li>
+                            <li>Use Case: Audit trail, recent actions history</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Stack (Undo/Redo)</h6>
+                        <ul class="small">
+                            <li>Type: <strong>LIFO (Last In First Out)</strong></li>
+                            <li>Undo Stack: <strong>{% if undo_available %}Available{% else %}None{% endif %}</strong></li>
+                            <li>Redo Stack: <strong>{% if redo_available %}Available{% else %}None{% endif %}</strong></li>
+                            <li>Use Case: Reversing recent changes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
