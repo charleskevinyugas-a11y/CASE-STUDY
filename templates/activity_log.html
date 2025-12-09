@@ -75,6 +75,10 @@
                                             <span class="badge bg-warning text-dark">EDIT</span>
                                         {% elif action.action_type == 'DELETE' %}
                                             <span class="badge bg-danger">DELETE</span>
+                                        {% elif action.action_type == 'UNDO' %}
+                                            <span class="badge bg-info">UNDO</span>
+                                        {% elif action.action_type == 'REDO' %}
+                                            <span class="badge bg-secondary">REDO</span>
                                         {% endif %}
                                     </td>
                                     <td>{{ action.student_name }}</td>
