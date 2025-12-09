@@ -16,7 +16,7 @@
     </nav>
 
     <div class="container mt-4">
-        <h1 class="mb-4">Activity Log (Queue Implementation)</h1>
+        <h1 class="mb-4">Activity Log</h1>
 
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -45,44 +45,10 @@
           {% endif %}
         {% endwith %}
 
-        <!-- Undo/Redo Controls -->
-        <div class="card mb-4 bg-light border-primary">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Stack Operations (Undo/Redo)</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" class="d-flex gap-2">
-                    {% if undo_available %}
-                        <button type="submit" formaction="/undo" class="btn btn-warning">
-                            <i class="bi bi-arrow-counterclockwise"></i> Undo Last Change
-                        </button>
-                    {% else %}
-                        <button type="submit" class="btn btn-warning" disabled>
-                            <i class="bi bi-arrow-counterclockwise"></i> Undo (None Available)
-                        </button>
-                    {% endif %}
-                    
-                    {% if redo_available %}
-                        <button type="submit" formaction="/redo" class="btn btn-info">
-                            <i class="bi bi-arrow-clockwise"></i> Redo Last Undo
-                        </button>
-                    {% else %}
-                        <button type="submit" class="btn btn-info" disabled>
-                            <i class="bi bi-arrow-clockwise"></i> Redo (None Available)
-                        </button>
-                    {% endif %}
-                </form>
-                <small class="text-muted d-block mt-2">
-                    <strong>Stack Info:</strong> Actions are stored in LIFO (Last In First Out) order. 
-                    Undo reverses the most recent action; Redo restores the most recent undo.
-                </small>
-            </div>
-        </div>
-
         <!-- Recent Actions Table -->
         <div class="card">
             <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Recent Actions (FIFO Queue Order)</h5>
+                <h5 class="mb-0">Recent Actions</h5>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
