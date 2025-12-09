@@ -419,14 +419,8 @@ def delete_student(id):
         for te in list(student.time_entries):
             db.session.delete(te)
 
-    # delete student picture file if present
-    if student.picture:
-        pic_path = os.path.join(app.config['UPLOAD_FOLDER'], student.picture)
-        try:
-            if os.path.exists(pic_path):
-                os.remove(pic_path)
-        except Exception:
-            pass
+    # NOTE: Don't delete picture file - keep it for undo/redo restore functionality
+    # Picture files can be cleaned up later if needed for students with no remaining references
 
     db.session.delete(student)
     db.session.commit()
@@ -638,10 +632,7 @@ def undo():
             # Delete the student that was added
             student = Student.query.get(student_id)
             if student:
-                # Delete picture if exists
-                if student.picture and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], student.picture)):
-                    os.remove(os.path.join(app.config['UPLOAD_FOLDER'], student.picture))
-                
+                # NOTE: Don't delete picture file - keep it for undo/redo restore functionality
                 # Delete time entries
                 TimeEntry.query.filter_by(student_id=student_id).delete()
                 db.session.delete(student)
@@ -690,8 +681,7 @@ def redo():
             student = Student.query.get(student_id)
             if student:
                 TimeEntry.query.filter_by(student_id=student_id).delete()
-                if student.picture and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], student.picture)):
-                    os.remove(os.path.join(app.config['UPLOAD_FOLDER'], student.picture))
+                # NOTE: Don't delete picture file - keep it for undo/redo restore functionality
                 db.session.delete(student)
                 db.session.commit()
                 flash(f"Redo successful: Deleted '{data['name']}'", "success")
