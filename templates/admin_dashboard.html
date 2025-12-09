@@ -9,10 +9,20 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
         <div class="container-fluid">
             <span class="navbar-brand mb-0 h1">Community Service Tracking</span>
-            <a href="/" class="btn btn-outline-light">Home</a>
+            <div class="d-flex gap-2 align-items-center">
+                <form method="POST" class="d-flex gap-2">
+                    <button type="submit" formaction="/undo" class="btn btn-sm btn-warning" title="Undo last change (Ctrl+Z)">
+                        <i class="bi bi-arrow-counterclockwise"></i> Undo
+                    </button>
+                    <button type="submit" formaction="/redo" class="btn btn-sm btn-info" title="Redo last undo (Ctrl+Y)">
+                        <i class="bi bi-arrow-clockwise"></i> Redo
+                    </button>
+                </form>
+                <a href="/" class="btn btn-outline-light">Home</a>
+            </div>
         </div>
     </nav>
 
@@ -39,20 +49,6 @@
             {% endfor %}
           {% endif %}
         {% endwith %}
-
-        <!-- Undo/Redo Stack Controls -->
-        <div class="card mb-4 bg-light border-warning" id="undoRedoCard">
-            <div class="card-body py-2">
-                <form method="POST" class="d-flex gap-2 flex-wrap">
-                    <button type="submit" formaction="/undo" class="btn btn-sm btn-warning" title="Undo last change (Ctrl+Z)">
-                        <i class="bi bi-arrow-counterclockwise"></i> Undo
-                    </button>
-                    <button type="submit" formaction="/redo" class="btn btn-sm btn-info" title="Redo last undo (Ctrl+Y)">
-                        <i class="bi bi-arrow-clockwise"></i> Redo
-                    </button>
-                </form>
-            </div>
-        </div>
 
         <!-- Search and Filter Section -->
         <div class="card mb-4">
